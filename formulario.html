@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Formulario</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;700&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <!-- reutiliza o seu style.css já existente -->
+  <link rel="stylesheet" href="style.css">
+<script src="script.js" defer></script>
+
+</head>
+<body>
+
+  <div id="particles"></div>
+    <!-- Botão voltar -->
+    <a href="index.html" class="back-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M19 12H5M12 5l-7 7 7 7"/>
+      </svg>
+      Voltar
+    </a>
+    <!-- FORMULÁRIO -->
+    <section class="section" id="contact">
+      <div class="contact-form-side">      <form id="contactForm" novalidate>
+
+        <div class="form-group">
+          <label for="nome">Nome</label>
+          <input type="text" id="nome" name="nome" placeholder="Seu nome completo" autocomplete="name">
+          <span class="field-error" id="erroNome"></span>
+        </div>
+
+        <div class="form-group">
+          <label for="email">E-mail</label>
+          <input type="email" id="email" name="email" placeholder="seu@email.com" autocomplete="email">
+          <span class="field-error" id="erroEmail"></span>
+        </div>
+
+        <div class="form-group">
+          <label for="assunto">Assunto</label>
+          <input type="text" id="assunto" name="assunto" placeholder="Ex: Proposta de projeto">
+          <span class="field-error" id="erroAssunto"></span>
+        </div>
+
+        <div class="form-group">
+          <label for="mensagem">Mensagem</label>
+          <textarea id="mensagem" name="mensagem" rows="5" placeholder="Escreva sua mensagem..."></textarea>
+          <span class="field-error" id="erroMensagem"></span>
+        </div>
+
+        <button type="submit" class="btn-primary form-submit" id="btnEnviar">
+          <span id="btnTexto">Enviar Mensagem</span>
+        </button>
+
+        <p class="form-feedback" id="formFeedback"></p>
+      </form>
+    </div>
+
+</section>
+  <footer class="footer">
+    <span class="footer-mono">ana_julia <span style="color:var(--magenta)">©️</span></span>
+  </footer>
+</body>
+</html>

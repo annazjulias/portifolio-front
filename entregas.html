@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Controle de Entregas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #18181f;
+    --surface3: #1f1f28;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #f0f0f5;
+    --text2: #8888a0;
+    --text3: #55556a;
+    --accent: #7c6af7;
+    --accent2: #a89cff;
+    --accent-glow: rgba(124,106,247,0.15);
+    --green: #3dd68c;
+    --green-dim: rgba(61,214,140,0.12);
+    --amber: #f5a623;
+    --amber-dim: rgba(245,166,35,0.12);
+    --red: #f05454;
+    --red-dim: rgba(240,84,84,0.1);
+    --blue: #5b9cf6;
+    --blue-dim: rgba(91,156,246,0.12);
+    --teal: #2dd4bf;
+    --teal-dim: rgba(45,212,191,0.1);
+    --r: 10px;
+    --r2: 14px;
+    --r3: 18px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; font-size: 14px; }
+  body { min-height: 100vh; }
+
+  /* ---- Layout ---- */
+  .app { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
+
+  /* ---- Sidebar ---- */
+  .sidebar {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 28px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+  }
+  .logo {
+    display: flex; align-items: center; gap: 10px;
+    padding: 0 8px 24px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 8px;
+  }
+  .logo-icon {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .logo-text { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 15px; color: var(--text); }
+  .logo-sub { font-size: 11px; color: var(--text3); margin-top: 1px; }
+
+  .nav-btn {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border-radius: var(--r);
+    border: none; background: transparent; color: var(--text2);
+    cursor: pointer; font-family: 'Inter', sans-serif; font-size: 13px;
+    font-weight: 400; text-align: left; width: 100%;
+    transition: all 0.15s;
+  }
+  .nav-btn:hover { background: var(--surface2); color: var(--text); }
+  .nav-btn.active { background: var(--accent-glow); color: var(--accent2); border: 1px solid rgba(124,106,247,0.2); }
+  .nav-btn .nav-icon { font-size: 16px; width: 18px; }
+
+  .sidebar-footer { margin-top: auto; padding-top: 16px; border-top: 1px solid var(--border); }
+  .sidebar-footer .nav-btn { color: var(--text3); }
+
+  /* ---- Main ---- */
+  .main { padding: 36px 40px; overflow-y: auto; }
+  .page { display: none; }
+  .page.active { display: block; }
+
+  .page-header { margin-bottom: 32px; }
+  .page-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 26px; color: var(--text); letter-spacing: -0.5px; }
+  .page-sub { font-size: 13px; color: var(--text2); margin-top: 4px; }
+
+  /* ---- Cards ---- */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r3);
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+  .card-title { font-family: 'Syne', sans-serif; font-weight: 600; font-size: 13px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 20px; }
+
+  /* ---- Form ---- */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .form-grid.full { grid-template-columns: 1fr; }
+  .field label { display: block; font-size: 12px; color: var(--text3); font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+  .field input {
+    width: 100%; padding: 11px 14px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: var(--r); color: var(--text); font-family: 'DM Mono', monospace;
+    font-size: 15px; transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .field input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+  .field input::placeholder { color: var(--text3); font-size: 14px; }
+
+  .seg { display: flex; gap: 6px; }
+  .seg-btn {
+    flex: 1; padding: 9px 8px; font-size: 12px; font-weight: 500;
+    border: 1px solid var(--border); border-radius: var(--r);
+    cursor: pointer; background: var(--surface2); color: var(--text2);
+    transition: all 0.15s; text-align: center; font-family: 'Inter', sans-serif;
+  }
+  .seg-btn:hover { border-color: var(--border2); color: var(--text); }
+  .seg-btn.active-ifood  { background: var(--amber-dim); color: var(--amber); border-color: rgba(245,166,35,0.3); }
+  .seg-btn.active-tel    { background: var(--blue-dim);  color: var(--blue);  border-color: rgba(91,156,246,0.3); }
+  .seg-btn.active-whats  { background: var(--green-dim); color: var(--green); border-color: rgba(61,214,140,0.3); }
+  .seg-btn.active-urb    { background: var(--blue-dim);  color: var(--blue);  border-color: rgba(91,156,246,0.3); }
+  .seg-btn.active-loja   { background: var(--accent-glow); color: var(--accent2); border-color: rgba(124,106,247,0.3); }
+  .seg-btn.active-naoinf { background: var(--surface3); color: var(--text2); border-color: var(--border2); }
+
+  .btn-primary {
+    width: 100%; padding: 12px; font-size: 14px; font-weight: 600;
+    background: var(--accent); color: #fff;
+    border: none; border-radius: var(--r); cursor: pointer;
+    font-family: 'Syne', sans-serif; letter-spacing: 0.02em;
+    transition: opacity 0.15s, transform 0.1s;
+  }
+  .btn-primary:hover { opacity: 0.9; }
+  .btn-primary:active { transform: scale(0.99); }
+  .btn-primary.editing { background: var(--amber); }
+
+  /* ---- Metrics ---- */
+  .metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
+  .metric {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r2);
+    padding: 20px;
+    position: relative; overflow: hidden;
+  }
+  .metric::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: var(--metric-color, var(--accent));
+  }
+  .metric-icon { font-size: 20px; margin-bottom: 12px; }
+  .metric-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 500; margin-bottom: 6px; }
+  .metric-val { font-family: 'DM Mono', monospace; font-size: 22px; font-weight: 500; color: var(--text); }
+  .metric-sub { font-size: 11px; color: var(--text3); margin-top: 4px; }
+
+  /* ---- Delivery rows ---- */
+  .delivery-list { display: flex; flex-direction: column; gap: 6px; }
+  .delivery-row {
+    display: grid; grid-template-columns: 44px 1fr auto auto auto;
+    align-items: center; gap: 12px;
+    padding: 14px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r2);
+    transition: border-color 0.15s;
+  }
+  .delivery-row:hover { border-color: var(--border2); }
+  .d-id {
+    width: 44px; height: 44px; border-radius: 10px;
+    background: var(--surface2);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text3);
+    border: 1px solid var(--border); flex-shrink: 0;
+  }
+  .d-origem { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 3px; }
+  .d-meta { font-size: 12px; color: var(--text3); }
+  .d-val { font-family: 'DM Mono', monospace; font-size: 16px; font-weight: 500; color: var(--green); }
+  .icon-btn {
+    width: 32px; height: 32px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--surface2);
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-size: 14px; color: var(--text3); transition: all 0.15s;
+  }
+  .icon-btn:hover { border-color: var(--border2); color: var(--text); }
+  .icon-btn.del:hover { border-color: rgba(240,84,84,0.4); color: var(--red); background: var(--red-dim); }
+  .icon-btn.edit:hover { border-color: rgba(245,166,35,0.4); color: var(--amber); background: var(--amber-dim); }
+
+  /* ---- Badges ---- */
+  .badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 100px; font-size: 11px; font-weight: 500; }
+  .badge-ifood  { background: var(--amber-dim); color: var(--amber); }
+  .badge-tel    { background: var(--blue-dim);  color: var(--blue);  }
+  .badge-whats  { background: var(--green-dim); color: var(--green); }
+  .badge-naoinf { background: var(--surface3);  color: var(--text3); }
+  .badge-urb    { background: var(--blue-dim);  color: var(--blue);  }
+  .badge-loja   { background: var(--accent-glow); color: var(--accent2); }
+
+  /* ---- Bars ---- */
+  .bar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .bar-lbl { font-size: 13px; color: var(--text2); width: 72px; flex-shrink: 0; }
+  .bar-track { flex: 1; height: 5px; background: var(--surface3); border-radius: 3px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s cubic-bezier(.4,0,.2,1); }
+  .bar-info { font-size: 12px; color: var(--text); font-family: 'DM Mono', monospace; min-width: 90px; text-align: right; }
+
+  /* ---- CSV Section ---- */
+  .csv-files { display: flex; flex-direction: column; gap: 8px; }
+  .csv-file-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 16px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: var(--r); cursor: pointer; transition: all 0.15s;
+  }
+  .csv-file-row:hover { border-color: var(--border2); background: var(--surface3); }
+  .csv-file-row.loaded { border-color: rgba(61,214,140,0.3); background: var(--green-dim); }
+  .csv-file-icon { font-size: 18px; }
+  .csv-file-name { flex: 1; font-size: 13px; color: var(--text); font-weight: 500; }
+  .csv-file-info { font-size: 12px; color: var(--text3); }
+  .csv-file-badge { padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+
+  .drop-zone {
+    border: 1.5px dashed var(--border2);
+    border-radius: var(--r2);
+    padding: 32px;
+    text-align: center;
+    color: var(--text3);
+    transition: all 0.2s;
+    cursor: pointer;
+    position: relative;
+  }
+  .drop-zone:hover, .drop-zone.drag { border-color: var(--accent); background: var(--accent-glow); color: var(--accent2); }
+  .drop-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .drop-icon { font-size: 28px; margin-bottom: 8px; }
+  .drop-text { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+  .drop-sub { font-size: 12px; }
+
+  .btn-row { display: flex; gap: 10px; margin-top: 16px; }
+  .btn-sec {
+    flex: 1; padding: 10px 16px; font-size: 13px; font-weight: 500;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: var(--r); color: var(--text2); cursor: pointer;
+    font-family: 'Inter', sans-serif; transition: all 0.15s;
+  }
+  .btn-sec:hover { border-color: var(--border2); color: var(--text); }
+  .btn-sec.accent { border-color: rgba(124,106,247,0.3); color: var(--accent2); background: var(--accent-glow); }
+
+  /* ---- Filter row ---- */
+  .filter-bar { display: flex; gap: 10px; margin-bottom: 24px; }
+  .filter-bar select {
+    padding: 9px 12px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r); color: var(--text); font-family: 'Inter', sans-serif;
+    font-size: 13px; cursor: pointer;
+  }
+  .filter-bar select:focus { outline: none; border-color: var(--accent); }
+  .filter-bar .btn-sec { flex: 0 0 auto; }
+
+  /* ---- Toast ---- */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(8px);
+    background: var(--surface); border: 1px solid var(--border2);
+    padding: 10px 20px; border-radius: 100px;
+    font-size: 13px; color: var(--text);
+    opacity: 0; transition: all 0.25s; pointer-events: none;
+    white-space: nowrap; box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    z-index: 9999;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ---- Edit highlight ---- */
+  .card.editing { border-color: rgba(245,166,35,0.3); }
+
+  .empty-state { text-align: center; padding: 48px 24px; color: var(--text3); }
+  .empty-state .empty-icon { font-size: 36px; margin-bottom: 12px; }
+  .empty-state p { font-size: 14px; }
+
+  .divider { height: 1px; background: var(--border); margin: 20px 0; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .rel-section-title { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 16px; }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-icon">🛵</div>
+      <div>
+        <div class="logo-text">Entregas</div>
+        <div class="logo-sub">Controle diário</div>
+      </div>
+    </div>
+
+    <button class="nav-btn active" onclick="goTo('cadastro', this)">
+      <span class="nav-icon">＋</span> Cadastrar
+    </button>
+    <button class="nav-btn" onclick="goTo('relatorio', this)">
+      <span class="nav-icon">◎</span> Relatório
+    </button>
+    <button class="nav-btn" onclick="goTo('historico', this)">
+      <span class="nav-icon">≡</span> Histórico
+    </button>
+
+    <div class="sidebar-footer">
+      <button class="nav-btn" onclick="goTo('arquivos', this)">
+        <span class="nav-icon">⬡</span> Arquivos CSV
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- ======= CADASTRO ======= -->
+    <div id="page-cadastro" class="page active">
+      <div class="page-header">
+        <div class="page-title">Nova entrega</div>
+        <div class="page-sub" id="hoje-label"></div>
+      </div>
+
+      <div class="two-col">
+        <div>
+          <div class="card" id="form-card">
+            <div class="card-title" id="form-card-title">Dados da entrega</div>
+
+            <div class="form-grid">
+              <div class="field">
+                <label>Valor (R$)</label>
+                <input type="number" id="valor" placeholder="0,00" min="0" step="0.01" />
+              </div>
+              <div class="field">
+                <label>Entregador loja (R$)</label>
+                <input type="number" id="taxa" placeholder="0,00" min="0" step="0.01" value="0" />
+              </div>
+            </div>
+
+            <div class="field" style="margin-bottom:14px;">
+              <label>Data</label>
+              <input type="date" id="data-entrega" />
+            </div>
+
+            <div class="field" style="margin-bottom:14px;">
+              <label>Meio de compra</label>
+              <div class="seg">
+                <div class="seg-btn active-ifood" data-group="origem" data-val="iFood" onclick="selectSeg(this)">iFood</div>
+                <div class="seg-btn" data-group="origem" data-val="Telefone" onclick="selectSeg(this)">Telefone</div>
+                <div class="seg-btn" data-group="origem" data-val="WhatsApp" onclick="selectSeg(this)">WhatsApp</div>
+                <div class="seg-btn" data-group="origem" data-val="Não informado" onclick="selectSeg(this)">—</div>
+              </div>
+            </div>
+
+            <div class="field" style="margin-bottom:20px;">
+              <label>Tipo</label>
+              <div class="seg">
+                <div class="seg-btn active-loja" data-group="tipo" data-val="Loja" onclick="selectSeg(this)">🏪 Entregador loja</div>
+                <div class="seg-btn" data-group="tipo" data-val="Urbanos" onclick="selectSeg(this)">🛵 Urbanos</div>
+              </div>
+            </div>
+
+            <button class="btn-primary" id="salvar-btn" onclick="salvar()">Salvar entrega</button>
+            <button id="cancel-btn" onclick="cancelEdit()" style="display:none;width:100%;margin-top:8px;padding:10px;background:transparent;border:1px solid var(--border);border-radius:var(--r);color:var(--text2);cursor:pointer;font-size:13px;">Cancelar edição</button>
+          </div>
+        </div>
+
+        <div>
+          <div style="margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;">
+            <span style="font-family:'Syne',sans-serif;font-weight:600;font-size:14px;color:var(--text);">Hoje</span>
+            <span id="hoje-count" style="font-size:12px;color:var(--text3);"></span>
+          </div>
+          <div id="hoje-list" class="delivery-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======= RELATÓRIO ======= -->
+    <div id="page-relatorio" class="page">
+      <div class="page-header">
+        <div class="page-title">Relatório</div>
+        <div class="page-sub">Análise mensal de faturamento e origens</div>
+      </div>
+
+      <div class="filter-bar">
+        <select id="rel-mes">
+          <option value="1">Janeiro</option><option value="2">Fevereiro</option>
+          <option value="3">Março</option><option value="4">Abril</option>
+          <option value="5">Maio</option><option value="6">Junho</option>
+          <option value="7">Julho</option><option value="8">Agosto</option>
+          <option value="9">Setembro</option><option value="10">Outubro</option>
+          <option value="11">Novembro</option><option value="12">Dezembro</option>
+        </select>
+        <select id="rel-ano"></select>
+        <button class="btn-sec accent" onclick="gerarRelatorio()">Gerar →</button>
+        <button class="btn-sec" onclick="exportarRelatorioCSV()" title="Exportar CSV do mês">⬇ CSV</button>
+      </div>
+
+      <div id="rel-output"></div>
+    </div>
+
+    <!-- ======= HISTÓRICO ======= -->
+    <div id="page-historico" class="page">
+      <div class="page-header">
+        <div class="page-title">Histórico</div>
+        <div class="page-sub">Todas as entregas registradas</div>
+      </div>
+
+      <div class="filter-bar">
+        <select id="hist-mes">
+          <option value="">Todos os meses</option>
+          <option value="1">Janeiro</option><option value="2">Fevereiro</option>
+          <option value="3">Março</option><option value="4">Abril</option>
+          <option value="5">Maio</option><option value="6">Junho</option>
+          <option value="7">Julho</option><option value="8">Agosto</option>
+          <option value="9">Setembro</option><option value="10">Outubro</option>
+          <option value="11">Novembro</option><option value="12">Dezembro</option>
+        </select>
+        <select id="hist-ano"></select>
+        <select id="hist-origem">
+          <option value="">Todas origens</option>
+          <option value="iFood">iFood</option>
+          <option value="Telefone">Telefone</option>
+          <option value="WhatsApp">WhatsApp</option>
+          <option value="Não informado">Não informado</option>
+        </select>
+        <button class="btn-sec" onclick="exportarTudoCSV()">⬇ Exportar CSV</button>
+      </div>
+      <div id="hist-list" class="delivery-list"></div>
+    </div>
+
+    <!-- ======= ARQUIVOS CSV ======= -->
+    <div id="page-arquivos" class="page">
+      <div class="page-header">
+        <div class="page-title">Arquivos CSV</div>
+        <div class="page-sub">Importe CSVs anteriores para incluir no relatório</div>
+      </div>
+
+      <div class="two-col" style="align-items:start;">
+        <div>
+          <div class="card">
+            <div class="card-title">Importar CSV</div>
+            <div class="drop-zone" id="drop-zone">
+              <input type="file" id="csv-input" accept=".csv" multiple onchange="importarCSVs(this.files)" />
+              <div class="drop-icon">📂</div>
+              <div class="drop-text">Arraste arquivos CSV aqui</div>
+              <div class="drop-sub">ou clique para selecionar</div>
+            </div>
+            <div style="margin-top:12px;font-size:12px;color:var(--text3);">
+              O arquivo deve ter o cabeçalho: <code style="background:var(--surface2);padding:1px 5px;border-radius:4px;font-family:'DM Mono',monospace;">ID;Valor;Taxa;Origem;Tipo;Dia;Mes;Ano</code>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top:0;">
+            <div class="card-title">Exportar dados</div>
+            <div class="btn-row">
+              <button class="btn-sec" onclick="exportarTudoCSV()">⬇ Exportar todos os dados</button>
+              <button class="btn-sec" onclick="exportarRelatorioCSV()">⬇ CSV do mês atual</button>
+            </div>
+            <div style="margin-top:12px;">
+              <button class="btn-sec" style="width:100%;color:var(--red);border-color:rgba(240,84,84,0.3);" onclick="limparTudo()">🗑 Limpar todos os dados</button>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="card">
+            <div class="card-title">Dados carregados</div>
+            <div id="csv-status"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const MESES = ['','Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+// ============= STORAGE =============
+function getEntregas() {
+  try { return JSON.parse(localStorage.getItem('entregas_v3') || '[]'); } catch(e) { return []; }
+}
+function saveEntregas(arr) { localStorage.setItem('entregas_v3', JSON.stringify(arr)); }
+function getNextId() {
+  const arr = getEntregas();
+  return arr.length ? Math.max(...arr.map(e=>e.id)) + 1 : 1;
+}
+
+// ============= NAV =============
+function goTo(page, btn) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  if(btn) btn.classList.add('active');
+  if(page==='relatorio') { populateYearSelects(); gerarRelatorio(); }
+  if(page==='historico') { populateYearSelects(); renderHistorico(); }
+  if(page==='arquivos') renderCSVStatus();
+  if(page==='cadastro') renderHoje();
+}
+
+// ============= SEG BTNS =============
+function selectSeg(el) {
+  const group = el.dataset.group;
+  const val = el.dataset.val;
+  document.querySelectorAll(`[data-group="${group}"]`).forEach(b=>{
+    b.className = 'seg-btn';
+  });
+  if(group==='origem') {
+    const cls = val==='iFood'?'active-ifood':val==='Telefone'?'active-tel':val==='WhatsApp'?'active-whats':'active-naoinf';
+    el.className = 'seg-btn ' + cls;
+  } else {
+    el.className = 'seg-btn ' + (val==='Urbanos'?'active-urb':'active-loja');
+  }
+}
+function getSegVal(group) {
+  const el = document.querySelector(`[data-group="${group}"][class*="active-"]`);
+  return el ? el.dataset.val : null;
+}
+function setSegVal(group, val) {
+  const el = document.querySelector(`[data-group="${group}"][data-val="${val}"]`);
+  if(el) selectSeg(el);
+}
+
+// ============= TOAST =============
+let toastTimer;
+function toast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.borderColor = type==='ok' ? 'rgba(61,214,140,0.4)' : type==='err' ? 'rgba(240,84,84,0.4)' : 'var(--border2)';
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2400);
+}
+
+// ============= FORMATO =============
+const fmt = v => 'R$ ' + parseFloat(v).toFixed(2).replace('.',',');
+const badgeOrigem = o => `<span class="badge badge-${o==='iFood'?'ifood':o==='Telefone'?'tel':o==='WhatsApp'?'whats':'naoinf'}">${o}</span>`;
+const badgeTipo = t => `<span class="badge badge-${t==='Urbanos'?'urb':'loja'}">${t}</span>`;
+
+// ============= EDIT STATE =============
+let editingId = null;
+
+function cancelEdit() {
+  editingId = null;
+  document.getElementById('form-card').classList.remove('editing');
+  document.getElementById('form-card-title').textContent = 'Dados da entrega';
+  document.getElementById('salvar-btn').textContent = 'Salvar entrega';
+  document.getElementById('salvar-btn').classList.remove('editing');
+  document.getElementById('cancel-btn').style.display = 'none';
+  document.getElementById('valor').value = '';
+  document.getElementById('taxa').value = '0';
+  const now = new Date();
+  document.getElementById('data-entrega').value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+  setSegVal('origem','iFood');
+  setSegVal('tipo','Loja');
+}
+
+// ============= SALVAR =============
+function salvar() {
+  const valor = parseFloat(document.getElementById('valor').value);
+  if(!valor || valor <= 0) { toast('Informe o valor da entrega', 'err'); return; }
+  const taxa = parseFloat(document.getElementById('taxa').value) || 0;
+  const origem = getSegVal('origem');
+  const tipo = getSegVal('tipo');
+  const dataVal = document.getElementById('data-entrega').value;
+  let dia, mes, ano;
+  if(dataVal) {
+    const parts = dataVal.split('-');
+    ano = parseInt(parts[0]); mes = parseInt(parts[1]); dia = parseInt(parts[2]);
+  } else {
+    const now = new Date();
+    dia = now.getDate(); mes = now.getMonth()+1; ano = now.getFullYear();
+  }
+  const arr = getEntregas();
+
+  if(editingId !== null) {
+    const idx = arr.findIndex(e=>e.id===editingId);
+    if(idx>-1) { arr[idx] = {...arr[idx], valor, taxa, origem, tipo, dia, mes, ano}; }
+    saveEntregas(arr);
+    toast(`Entrega #${editingId} atualizada!`, 'ok');
+    cancelEdit();
+    renderHoje();
+    return;
+  }
+
+  const e = { id: getNextId(), valor, taxa, origem, tipo, dia, mes, ano };
+  arr.push(e);
+  saveEntregas(arr);
+  document.getElementById('valor').value = '';
+  document.getElementById('taxa').value = '0';
+  setSegVal('origem','iFood');
+  setSegVal('tipo','Loja');
+  toast(`Entrega #${e.id} salva!`, 'ok');
+  renderHoje();
+}
+
+// ============= RENDER HOJE =============
+function renderHoje() {
+  const now = new Date();
+  const arr = getEntregas().filter(e=>e.dia===now.getDate()&&e.mes===now.getMonth()+1&&e.ano===now.getFullYear());
+  const wrap = document.getElementById('hoje-list');
+  document.getElementById('hoje-count').textContent = arr.length ? `${arr.length} entrega${arr.length>1?'s':''}` : '';
+
+  if(!arr.length) {
+    wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">📦</div><p>Nenhuma entrega hoje</p></div>`;
+    return;
+  }
+  arr.sort((a,b)=>b.id-a.id);
+  wrap.innerHTML = arr.map(e=>`
+    <div class="delivery-row">
+      <div class="d-id">#${String(e.id).padStart(3,'0')}</div>
+      <div>
+        <div class="d-origem">${badgeOrigem(e.origem)} ${badgeTipo(e.tipo)}</div>
+        <div class="d-meta">${e.taxa>0?`Taxa: ${fmt(e.taxa)}`:'Sem taxa'} · ${String(e.dia).padStart(2,'0')}/${String(e.mes).padStart(2,'0')}</div>
+      </div>
+      <div class="d-val">${fmt(e.valor)}</div>
+      <button class="icon-btn edit" onclick="editarHoje(${e.id})" title="Editar">✎</button>
+      <button class="icon-btn del" onclick="if(confirm('Remover #${e.id}?'))excluir(${e.id})" title="Excluir">✕</button>
+    </div>`).join('');
+}
+
+function editarHoje(id) {
+  const arr = getEntregas();
+  const e = arr.find(x=>x.id===id);
+  if(!e) return;
+  editingId = id;
+  document.getElementById('valor').value = e.valor;
+  document.getElementById('taxa').value = e.taxa;
+  document.getElementById('data-entrega').value = `${e.ano}-${String(e.mes).padStart(2,'0')}-${String(e.dia).padStart(2,'0')}`;
+  setSegVal('origem', e.origem);
+  setSegVal('tipo', e.tipo);
+  document.getElementById('form-card-title').textContent = `Editando #${id}`;
+  document.getElementById('salvar-btn').textContent = 'Atualizar entrega';
+  document.getElementById('salvar-btn').classList.add('editing');
+  document.getElementById('cancel-btn').style.display = 'block';
+  document.getElementById('form-card').classList.add('editing');
+  window.scrollTo(0,0);
+}
+
+function excluir(id) {
+  saveEntregas(getEntregas().filter(e=>e.id!==id));
+  toast('Entrega removida');
+  renderHoje();
+}
+
+// ============= RELATÓRIO =============
+function gerarRelatorio() {
+  const mes = parseInt(document.getElementById('rel-mes').value);
+  const ano = parseInt(document.getElementById('rel-ano').value);
+  const arr = getEntregas().filter(e=>e.mes===mes&&e.ano===ano);
+  const out = document.getElementById('rel-output');
+
+  if(!arr.length) {
+    out.innerHTML = `<div class="empty-state"><div class="empty-icon">📊</div><p>Nenhuma entrega em ${MESES[mes]}/${ano}</p></div>`;
+    return;
+  }
+
+  const total = arr.length;
+  const vTotal = arr.reduce((s,e)=>s+e.valor, 0);
+  const ticket = vTotal/total;
+  const gastoUrb = arr.filter(e=>e.tipo==='Urbanos').reduce((s,e)=>s+e.taxa, 0);
+  const taxaLoja = arr.filter(e=>e.tipo==='Loja').reduce((s,e)=>s+e.taxa, 0);
+
+  const byOrigem = {};
+  arr.forEach(e=>{ if(!byOrigem[e.origem]) byOrigem[e.origem]={count:0,val:0}; byOrigem[e.origem].count++; byOrigem[e.origem].val+=e.valor; });
+  const byTipo = {};
+  arr.forEach(e=>{ if(!byTipo[e.tipo]) byTipo[e.tipo]={count:0,val:0}; byTipo[e.tipo].count++; byTipo[e.tipo].val+=e.valor; });
+
+  const maxV = Math.max(...Object.values(byOrigem).map(v=>v.val));
+  const origemColors = { iFood: 'var(--amber)', Telefone: 'var(--blue)', WhatsApp: 'var(--green)', 'Não informado': 'var(--text3)' };
+
+  const origemBars = Object.entries(byOrigem).map(([k,v])=>{
+    const pct = maxV ? Math.round(v.val/maxV*100) : 0;
+    return `
+      <div class="bar-row">
+        <span class="bar-lbl">${k}</span>
+        <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${origemColors[k]||'var(--accent)'};"></div></div>
+        <span class="bar-info">${fmt(v.val)} <span style="color:var(--text3);font-size:11px;">(${v.count}x)</span></span>
+      </div>`;
+  }).join('');
+
+  const tipoRows = Object.entries(byTipo).map(([k,v])=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
+      <span>${badgeTipo(k)}</span>
+      <span style="font-size:12px;color:var(--text3);">${v.count} entregas</span>
+      <span style="font-family:'DM Mono',monospace;font-size:14px;color:var(--text);">${fmt(v.val)}</span>
+    </div>`).join('');
+
+  const diasMap = {};
+  arr.forEach(e=>{ const k=`${e.dia}/${e.mes}`; if(!diasMap[k]) diasMap[k]=0; diasMap[k]+=e.valor; });
+  const topDia = Object.entries(diasMap).sort((a,b)=>b[1]-a[1])[0];
+
+  out.innerHTML = `
+    <div class="metrics-grid">
+      <div class="metric" style="--metric-color:var(--accent);">
+        <div class="metric-icon">📦</div>
+        <div class="metric-label">Total entregas</div>
+        <div class="metric-val">${total}</div>
+        <div class="metric-sub">${MESES[mes]} ${ano}</div>
+      </div>
+      <div class="metric" style="--metric-color:var(--green);">
+        <div class="metric-icon">💰</div>
+        <div class="metric-label">Faturamento</div>
+        <div class="metric-val" style="font-size:17px;">${fmt(vTotal)}</div>
+        <div class="metric-sub">ticket médio ${fmt(ticket)}</div>
+      </div>
+      <div class="metric" style="--metric-color:var(--red);">
+        <div class="metric-icon">🛵</div>
+        <div class="metric-label">Gasto Urbanos</div>
+        <div class="metric-val" style="font-size:17px;color:var(--red);">${fmt(gastoUrb)}</div>
+        <div class="metric-sub">taxa entregador</div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="rel-section-title">Por origem</div>
+        ${origemBars}
+      </div>
+      <div class="card">
+        <div class="rel-section-title">Por tipo</div>
+        ${tipoRows}
+        ${taxaLoja>0?`<div style="margin-top:12px;padding:10px;background:var(--accent-glow);border-radius:var(--r);font-size:12px;color:var(--accent2);">Taxa loja cobrada: <strong>${fmt(taxaLoja)}</strong></div>`:''}
+        ${topDia?`<div class="divider"></div><div style="font-size:12px;color:var(--text3);">Melhor dia: <strong style="color:var(--text);">${topDia[0]}</strong> com ${fmt(topDia[1])}</div>`:''}
+      </div>
+    </div>`;
+}
+
+// ============= HISTÓRICO =============
+function renderHistorico() {
+  const mes = document.getElementById('hist-mes').value;
+  const ano = document.getElementById('hist-ano').value;
+  const origem = document.getElementById('hist-origem').value;
+  let arr = getEntregas();
+  if(mes) arr = arr.filter(e=>e.mes===parseInt(mes));
+  if(ano) arr = arr.filter(e=>e.ano===parseInt(ano));
+  if(origem) arr = arr.filter(e=>e.origem===origem);
+  arr.sort((a,b)=>b.id-a.id);
+  const wrap = document.getElementById('hist-list');
+  if(!arr.length) { wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">🔍</div><p>Nenhuma entrega encontrada</p></div>`; return; }
+  wrap.innerHTML = arr.map(e=>`
+    <div class="delivery-row">
+      <div class="d-id">#${String(e.id).padStart(3,'0')}</div>
+      <div>
+        <div class="d-origem">${badgeOrigem(e.origem)} ${badgeTipo(e.tipo)}</div>
+        <div class="d-meta">${String(e.dia).padStart(2,'0')}/${String(e.mes).padStart(2,'0')}/${e.ano}${e.taxa>0?` · taxa ${fmt(e.taxa)}`:''}</div>
+      </div>
+      <div class="d-val">${fmt(e.valor)}</div>
+      <button class="icon-btn edit" onclick="goTo('cadastro',document.querySelector('[onclick*=cadastro]'));editarHoje(${e.id})" title="Editar">✎</button>
+      <button class="icon-btn del" onclick="if(confirm('Remover #${e.id}?')){saveEntregas(getEntregas().filter(x=>x.id!==${e.id}));renderHistorico();toast('Removido')}" title="Excluir">✕</button>
+    </div>`).join('');
+}
+
+document.getElementById('hist-mes').addEventListener('change', renderHistorico);
+document.getElementById('hist-ano').addEventListener('change', renderHistorico);
+document.getElementById('hist-origem').addEventListener('change', renderHistorico);
+
+// ============= CSV EXPORT =============
+function toCSV(arr) {
+  const header = 'ID;Valor;Taxa;Origem;Tipo;Dia;Mes;Ano\n';
+  const rows = arr.map(e=>`${e.id};${e.valor.toFixed(2)};${e.taxa.toFixed(2)};${e.origem};${e.tipo};${e.dia};${e.mes};${e.ano}`).join('\n');
+  return header + rows;
+}
+function downloadCSV(content, filename) {
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(content);
+  a.download = filename;
+  a.click();
+}
+function exportarTudoCSV() {
+  const arr = getEntregas();
+  if(!arr.length) { toast('Nenhum dado para exportar', 'err'); return; }
+  downloadCSV(toCSV(arr), `entregas_completo_${new Date().toISOString().slice(0,10)}.csv`);
+  toast('CSV exportado!', 'ok');
+}
+function exportarRelatorioCSV() {
+  const mes = parseInt(document.getElementById('rel-mes')?.value || new Date().getMonth()+1);
+  const ano = parseInt(document.getElementById('rel-ano')?.value || new Date().getFullYear());
+  const arr = getEntregas().filter(e=>e.mes===mes&&e.ano===ano);
+  if(!arr.length) { toast('Nenhum dado neste mês', 'err'); return; }
+  downloadCSV(toCSV(arr), `entregas_${String(mes).padStart(2,'0')}_${ano}.csv`);
+  toast('CSV do mês exportado!', 'ok');
+}
+
+// ============= CSV IMPORT =============
+function parseCSV(text) {
+  const lines = text.trim().split('\n');
+  if(lines.length < 2) return [];
+  const result = [];
+  for(let i=1; i<lines.length; i++) {
+    const cols = lines[i].split(';');
+    if(cols.length < 8) continue;
+    const e = {
+      id: parseInt(cols[0]),
+      valor: parseFloat(cols[1].replace(',','.')),
+      taxa: parseFloat(cols[2].replace(',','.')),
+      origem: cols[3].trim(),
+      tipo: cols[4].trim(),
+      dia: parseInt(cols[5]),
+      mes: parseInt(cols[6]),
+      ano: parseInt(cols[7])
+    };
+    if(!isNaN(e.id) && !isNaN(e.valor)) result.push(e);
+  }
+  return result;
+}
+
+function importarCSVs(files) {
+  if(!files.length) return;
+  let total = 0, novos = 0;
+  let pendente = files.length;
+  const arr = getEntregas();
+  const idsExistentes = new Set(arr.map(e=>e.id));
+  const newEntregas = [...arr];
+
+  Array.from(files).forEach(file=>{
+    const reader = new FileReader();
+    reader.onload = ev=>{
+      const parsed = parseCSV(ev.target.result);
+      total += parsed.length;
+      parsed.forEach(e=>{
+        if(!idsExistentes.has(e.id)) { newEntregas.push(e); idsExistentes.add(e.id); novos++; }
+      });
+      pendente--;
+      if(pendente===0) {
+        saveEntregas(newEntregas);
+        toast(`${novos} nova${novos!==1?'s':''} entrega${novos!==1?'s':''} importada${novos!==1?'s':''}!`, 'ok');
+        renderCSVStatus();
+        document.getElementById('csv-input').value = '';
+      }
+    };
+    reader.readAsText(file);
+  });
+}
+
+function renderCSVStatus() {
+  const arr = getEntregas();
+  const wrap = document.getElementById('csv-status');
+  if(!arr.length) { wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">📄</div><p>Nenhum dado ainda</p></div>`; return; }
+
+  const mesAno = {};
+  arr.forEach(e=>{ const k=`${String(e.mes).padStart(2,'0')}/${e.ano}`; if(!mesAno[k]) mesAno[k]={count:0,total:0}; mesAno[k].count++; mesAno[k].total+=e.valor; });
+  const sorted = Object.entries(mesAno).sort((a,b)=>b[0].localeCompare(a[0]));
+
+  wrap.innerHTML = `
+    <div style="margin-bottom:12px;font-size:12px;color:var(--text3);">${arr.length} entregas no banco de dados local</div>
+    <div class="csv-files">
+      ${sorted.map(([k,v])=>`
+        <div class="csv-file-row loaded">
+          <div class="csv-file-icon">📊</div>
+          <div>
+            <div class="csv-file-name">${k}</div>
+            <div class="csv-file-info">${v.count} entregas · ${fmt(v.total)}</div>
+          </div>
+          <span class="csv-file-badge" style="background:var(--green-dim);color:var(--green);">✓ OK</span>
+        </div>`).join('')}
+    </div>`;
+}
+
+function limparTudo() {
+  if(!confirm('Apagar TODOS os dados? Esta ação não pode ser desfeita.')) return;
+  localStorage.removeItem('entregas_v3');
+  renderCSVStatus();
+  renderHoje();
+  toast('Dados apagados');
+}
+
+// ============= DRAG & DROP =============
+const dz = document.getElementById('drop-zone');
+dz.addEventListener('dragover', e=>{ e.preventDefault(); dz.classList.add('drag'); });
+dz.addEventListener('dragleave', ()=>dz.classList.remove('drag'));
+dz.addEventListener('drop', e=>{ e.preventDefault(); dz.classList.remove('drag'); importarCSVs(e.dataTransfer.files); });
+
+// ============= INIT =============
+function populateYearSelects() {
+  const now = new Date();
+  const arr = getEntregas();
+  const anos = [...new Set([now.getFullYear(), ...arr.map(e=>e.ano)])].sort((a,b)=>b-a);
+  ['rel-ano','hist-ano'].forEach(id=>{
+    const sel = document.getElementById(id);
+    if(!sel) return;
+    const cur = sel.value || now.getFullYear();
+    sel.innerHTML = anos.map(a=>`<option value="${a}"${a==cur?' selected':''}>${a}</option>`).join('');
+  });
+}
+
+(function init() {
+  const now = new Date();
+  document.getElementById('hoje-label').textContent = `${now.getDate()} de ${MESES[now.getMonth()+1]} de ${now.getFullYear()}`;
+  document.getElementById('rel-mes').value = now.getMonth()+1;
+  document.getElementById('data-entrega').value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+  setSegVal('tipo','Loja');
+  populateYearSelects();
+  renderHoje();
+})();
+</script>
+</body>
+</html>
